@@ -1,6 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QCalendarWidget, QListWidget, QPushButton, QVBoxLayout, QWidget, QInputDialog
 from PyQt6.QtCore import QDate
+from PyQt6.QtGui import QTextCharFormat, QColor
 import sqlite3
 
 class CalendarApp(QMainWindow):
@@ -11,6 +12,7 @@ class CalendarApp(QMainWindow):
         
         self.initUI()
         self.initDB()
+        self.highlight_events()
     
     def initUI(self):
         widget = QWidget()
@@ -49,7 +51,7 @@ class CalendarApp(QMainWindow):
         events = self.cursor.fetchall()
         for event in events:
             self.event_list.addItem(event[0])
-    
+        
     def add_event(self):
         selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
         text, ok = QInputDialog.getText(self, "予定を追加", "予定を入力してください:")
@@ -57,6 +59,17 @@ class CalendarApp(QMainWindow):
             self.cursor.execute("INSERT INTO events (date, event) VALUES (?, ?)", (selected_date, text))
             self.conn.commit()
             self.load_events()
+            self.highlight_events()
+    
+    def highlight_events(self):
+        self.cursor.execute("SELECT DISTINCT date FROM events")
+        dates = self.cursor.fetchall()
+        
+        for date in dates:
+            qdate = QDate.fromString(date[0], "yyyy-MM-dd")
+            format = QTextCharFormat()
+            format.setBackground(QColor("lightblue"))
+            self.calendar.setDateTextFormat(qdate, format)
     
     def closeEvent(self, event):
         self.conn.close()
