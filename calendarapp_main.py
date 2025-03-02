@@ -11,6 +11,17 @@ class CustomCalendarWidget(QCalendarWidget):
 
         # 週番号を非表示にする
         self.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
+
+        # 初期の現在月を設定
+        self.current_month = self.selectedDate().month()
+
+        # 月が変更されたときに呼ばれるスロットを接続
+        self.currentPageChanged.connect(self.update_current_month)  # currentPageChangedシグナルをupdate_current_monthスロットに接続
+    
+    def update_current_month(self, year, month):
+        # 月が変更されたら current_month を更新
+        self.current_month = month
+        self.update()  # セルの描画を更新
     
     def set_events(self, events):
         self.events = events
@@ -23,7 +34,9 @@ class CustomCalendarWidget(QCalendarWidget):
     """
     def paintCell(self, painter, rect, date):
         date_str = date.toString("yyyy-MM-dd")
-        current_month = self.selectedDate().month()
+        
+        # 現在月をチェック
+        current_month = self.current_month
         
         # 背景の塗りつぶし（選択時）
         if self.selectedDate() == date:
