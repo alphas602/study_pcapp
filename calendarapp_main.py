@@ -1,8 +1,26 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QCalendarWidget, QListWidget, QPushButton, QVBoxLayout, QWidget, QInputDialog
 from PyQt6.QtCore import QDate
-from PyQt6.QtGui import QTextCharFormat, QColor
+from PyQt6.QtGui import QTextCharFormat, QColor, QPainter
 import sqlite3
+
+class CustomCalendarWidget(QCalendarWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.events = {}
+    
+    def set_events(self, events):
+        self.events = events
+        self.update()
+    
+    def paintCell(self, painter, rect, date):
+        super().paintCell(painter, rect, date)
+        
+        date_str = date.toString("yyyy-MM-dd")
+        if date_str in self.events:
+            painter.setPen(QColor("blue"))
+            text = self.events[date_str][:10] + ("..." if len(self.events[date_str]) > 10 else "")
+            painter.drawText(rect, 0, text)
 
 class CalendarApp(QMainWindow):
     def __init__(self):
@@ -12,14 +30,14 @@ class CalendarApp(QMainWindow):
         
         self.initUI()
         self.initDB()
-        self.highlight_events()
+        self.load_events()
     
     def initUI(self):
         widget = QWidget()
         layout = QVBoxLayout()
         
-        self.calendar = QCalendarWidget()
-        self.calendar.selectionChanged.connect(self.load_events)
+        self.calendar = CustomCalendarWidget()
+        self.calendar.selectionChanged.connect(self.load_selected_events)
         layout.addWidget(self.calendar)
         
         self.event_list = QListWidget()
@@ -45,13 +63,24 @@ class CalendarApp(QMainWindow):
         self.conn.commit()
     
     def load_events(self):
+        self.cursor.execute("SELECT date, event FROM events")
+        events = self.cursor.fetchall()
+        
+        event_dict = {}
+        for date, event in events:
+            event_dict[date] = event_dict.get(date, "") + event + "\n"
+        
+        self.calendar.set_events(event_dict)
+        self.load_selected_events()
+    
+    def load_selected_events(self):
         self.event_list.clear()
         selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
         self.cursor.execute("SELECT event FROM events WHERE date = ?", (selected_date,))
         events = self.cursor.fetchall()
         for event in events:
             self.event_list.addItem(event[0])
-        
+    
     def add_event(self):
         selected_date = self.calendar.selectedDate().toString("yyyy-MM-dd")
         text, ok = QInputDialog.getText(self, "予定を追加", "予定を入力してください:")
@@ -59,17 +88,6 @@ class CalendarApp(QMainWindow):
             self.cursor.execute("INSERT INTO events (date, event) VALUES (?, ?)", (selected_date, text))
             self.conn.commit()
             self.load_events()
-            self.highlight_events()
-    
-    def highlight_events(self):
-        self.cursor.execute("SELECT DISTINCT date FROM events")
-        dates = self.cursor.fetchall()
-        
-        for date in dates:
-            qdate = QDate.fromString(date[0], "yyyy-MM-dd")
-            format = QTextCharFormat()
-            format.setBackground(QColor("lightblue"))
-            self.calendar.setDateTextFormat(qdate, format)
     
     def closeEvent(self, event):
         self.conn.close()
