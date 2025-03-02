@@ -45,7 +45,7 @@ class CalendarApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("予定表アプリ")
-        self.setGeometry(100, 100, 400, 400)
+        self.setGeometry(100, 100, 800, 800)
         
         self.initUI()
         self.initDB()
@@ -57,10 +57,12 @@ class CalendarApp(QMainWindow):
         
         self.calendar = CustomCalendarWidget()
         self.calendar.selectionChanged.connect(self.load_selected_events)
-        layout.addWidget(self.calendar)
+        
+        # 上半分のサイズを1.5倍にする
+        layout.addWidget(self.calendar, stretch=3)  # 1.5倍にするため、比率を3に設定
         
         self.event_list = QListWidget()
-        layout.addWidget(self.event_list)
+        layout.addWidget(self.event_list, stretch=2)  # 下半分のサイズを半分にする
         
         self.add_event_button = QPushButton("予定を追加")
         self.add_event_button.clicked.connect(self.add_event)
