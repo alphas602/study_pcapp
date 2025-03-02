@@ -5,15 +5,22 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from datetime import datetime
+import csv
+
 
 class ExpenseTracker(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("家計管理アプリ")
         self.setGeometry(100, 100, 600, 400)
-        
+
         self.initUI()
         self.records = []
+        self.load_records()  # 起動時にデータを読み込む
+
+    def closeEvent(self, event):
+        self.save_records()  # 終了時にデータを保存
+        event.accept()
 
     def initUI(self):
         # メインレイアウト
@@ -101,13 +108,37 @@ class ExpenseTracker(QWidget):
     def update_total(self):
         total = 0
         for record in self.records:
-            amount = record[2]
+            amount = float(record[2])
             if record[3] == "支出":
                 total -= amount
             else:
                 total += amount
 
         self.total_label.setText(f"合計: {total:.2f} 円")
+
+    def save_records(self):
+        with open("records.csv", "w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(["日付", "カテゴリ", "金額", "タイプ"])  # ヘッダー
+            writer.writerows(self.records)  # データを書き込む
+
+    def load_records(self):
+        try:
+            with open("records.csv", "r", encoding="utf-8") as file:
+                reader = csv.reader(file)
+                next(reader)  # ヘッダーをスキップ
+                self.records = [row for row in reader]  # データをリストに格納
+
+                # テーブルに反映
+                self.table.setRowCount(0)  # 既存データをクリア
+                for row in self.records:
+                    row_position = self.table.rowCount()
+                    self.table.insertRow(row_position)
+                    for col, item in enumerate(row):
+                        self.table.setItem(row_position, col, QTableWidgetItem(item))
+                self.update_total()
+        except FileNotFoundError:
+            pass  # ファイルがない場合は何もしない
 
 
 if __name__ == "__main__":
