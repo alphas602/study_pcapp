@@ -16,21 +16,22 @@ class CustomCalendarWidget(QCalendarWidget):
     def paintCell(self, painter, rect, date):
         date_str = date.toString("yyyy-MM-dd")
         
-        # 背景の塗りつぶし（必要なら）
+        # 背景の塗りつぶし（選択時）
         if self.selectedDate() == date:
             painter.fillRect(rect, QColor("#ADD8E6"))  # 選択時に薄い青色
-
+        
         # 日付を左上に描画
         painter.setPen(Qt.GlobalColor.black)
         painter.setFont(QFont("Arial", 10))
         painter.drawText(rect.x() + 2, rect.y() + 12, date.toString("d"))
-
-        # 予定をその下に描画
+        
+        # 予定の描画（ハイライト付き）
         if date_str in self.events:
+            painter.fillRect(rect.x() + 2, rect.y() + 18, rect.width() - 4, 14, QColor("#FFFF99"))  # 予定の背景を黄色でハイライト
             painter.setPen(QColor("blue"))
             painter.setFont(QFont("Arial", 8))
             text = self.events[date_str][:10] + ("..." if len(self.events[date_str]) > 10 else "")
-            painter.drawText(rect.x() + 2, rect.y() + 25, text)
+            painter.drawText(rect.x() + 4, rect.y() + 28, text)
 
 class CalendarApp(QMainWindow):
     def __init__(self):
