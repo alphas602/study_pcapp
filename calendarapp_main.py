@@ -8,7 +8,7 @@ class CustomCalendarWidget(QCalendarWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.events = {}
-        
+
         # 週番号を非表示にする
         self.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
     
@@ -16,23 +16,41 @@ class CustomCalendarWidget(QCalendarWidget):
         self.events = events
         self.update()
     
+    """
+    呼び出しタイミング  ：QCalenderWidgetでセルの編集をする際
+    処理               ：セル内の描画用ツール
+    備考               ：オーバーライドして背景色、日付の位置と色、予定のハイライトなどを変更している。
+    """
     def paintCell(self, painter, rect, date):
         date_str = date.toString("yyyy-MM-dd")
+        current_month = self.selectedDate().month()
         
         # 背景の塗りつぶし（選択時）
         if self.selectedDate() == date:
             painter.fillRect(rect, QColor("#ADD8E6"))  # 選択時に薄い青色
         
-        # 曜日ごとの日付の色を設定
-        if date.dayOfWeek() == 6:  # 土曜日は青
-            date_color = QColor("blue")
-        elif date.dayOfWeek() == 7:  # 日曜日は赤
-            date_color = QColor("red")
+        # 前の月の日付をグレーでハイライト
+        if date.month() != current_month:
+            painter.fillRect(rect, QColor("#D3D3D3"))  # 前月のセルをグレーでハイライト
+            # 土日の場合は色を変更
+            if date.dayOfWeek() == 6:  # 土曜日
+                painter.setPen(QColor(150, 150, 255))  # 薄い青
+            elif date.dayOfWeek() == 7:  # 日曜日
+                painter.setPen(QColor(255, 150, 150))  # 薄い赤
+            else:
+                painter.setPen(QColor(150, 150, 150))  # 薄いグレー
         else:
-            date_color = QColor("black")
+            # 現在月の日付の曜日ごとの色を設定
+            if date.dayOfWeek() == 6:  # 土曜日は青
+                date_color = QColor("blue")
+            elif date.dayOfWeek() == 7:  # 日曜日は赤
+                date_color = QColor("red")
+            else:
+                date_color = QColor("black")
+            
+            painter.setPen(date_color)
         
         # 日付を左上に描画
-        painter.setPen(date_color)
         painter.setFont(QFont("Arial", 10))
         painter.drawText(rect.x() + 2, rect.y() + 12, date.toString("d"))
         
