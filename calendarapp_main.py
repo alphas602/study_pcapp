@@ -20,8 +20,16 @@ class CustomCalendarWidget(QCalendarWidget):
         if self.selectedDate() == date:
             painter.fillRect(rect, QColor("#ADD8E6"))  # 選択時に薄い青色
         
+        # 曜日ごとの日付の色を設定
+        if date.dayOfWeek() == 6:  # 土曜日は青
+            date_color = QColor("blue")
+        elif date.dayOfWeek() == 7:  # 日曜日は赤
+            date_color = QColor("red")
+        else:
+            date_color = QColor("black")
+        
         # 日付を左上に描画
-        painter.setPen(Qt.GlobalColor.black)
+        painter.setPen(date_color)
         painter.setFont(QFont("Arial", 10))
         painter.drawText(rect.x() + 2, rect.y() + 12, date.toString("d"))
         
