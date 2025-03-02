@@ -14,15 +14,17 @@ class CustomCalendarWidget(QCalendarWidget):
         self.update()
     
     def paintCell(self, painter, rect, date):
-        super().paintCell(painter, rect, date)
-        
         date_str = date.toString("yyyy-MM-dd")
         
+        # 背景の塗りつぶし（必要なら）
+        if self.selectedDate() == date:
+            painter.fillRect(rect, QColor("#ADD8E6"))  # 選択時に薄い青色
+
         # 日付を左上に描画
         painter.setPen(Qt.GlobalColor.black)
         painter.setFont(QFont("Arial", 10))
         painter.drawText(rect.x() + 2, rect.y() + 12, date.toString("d"))
-        
+
         # 予定をその下に描画
         if date_str in self.events:
             painter.setPen(QColor("blue"))
