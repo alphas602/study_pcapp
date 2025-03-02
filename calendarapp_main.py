@@ -8,6 +8,9 @@ class CustomCalendarWidget(QCalendarWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.events = {}
+        
+        # 週番号を非表示にする
+        self.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
     
     def set_events(self, events):
         self.events = events
@@ -45,7 +48,7 @@ class CalendarApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("予定表アプリ")
-        self.setGeometry(100, 100, 600, 500)
+        self.setGeometry(100, 100, 500, 500)
         
         self.initUI()
         self.initDB()
