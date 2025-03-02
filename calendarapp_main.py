@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QCalendarWidget, QListWidget, QPushButton, QVBoxLayout, QWidget, QInputDialog
-from PyQt6.QtCore import QDate
-from PyQt6.QtGui import QTextCharFormat, QColor, QPainter
+from PyQt6.QtCore import QDate, Qt
+from PyQt6.QtGui import QTextCharFormat, QColor, QPainter, QFont
 import sqlite3
 
 class CustomCalendarWidget(QCalendarWidget):
@@ -17,10 +17,18 @@ class CustomCalendarWidget(QCalendarWidget):
         super().paintCell(painter, rect, date)
         
         date_str = date.toString("yyyy-MM-dd")
+        
+        # 日付を左上に描画
+        painter.setPen(Qt.GlobalColor.black)
+        painter.setFont(QFont("Arial", 10))
+        painter.drawText(rect.x() + 2, rect.y() + 12, date.toString("d"))
+        
+        # 予定をその下に描画
         if date_str in self.events:
             painter.setPen(QColor("blue"))
+            painter.setFont(QFont("Arial", 8))
             text = self.events[date_str][:10] + ("..." if len(self.events[date_str]) > 10 else "")
-            painter.drawText(rect, 0, text)
+            painter.drawText(rect.x() + 2, rect.y() + 25, text)
 
 class CalendarApp(QMainWindow):
     def __init__(self):
